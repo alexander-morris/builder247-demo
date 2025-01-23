@@ -50,7 +50,7 @@ I will use the test tool to process the text.
     call = tool_calls[0]
     assert isinstance(call, ToolCall)
     assert call.tool_name == "test_tool"
-    assert call.parameters == {"text": "hello", "count": "3"}
+    assert call.parameters == {"text": "hello", "count": 3}
     assert "use the test tool" in call.explanation
     assert "<function_calls>" in call.raw_text
 
@@ -98,7 +98,7 @@ Second tool call:
     assert tool_calls[0].parameters == {"text": "hello"}
     assert "First tool call" in tool_calls[0].explanation
     
-    assert tool_calls[1].parameters == {"text": "world", "count": "2"}
+    assert tool_calls[1].parameters == {"text": "world", "count": 2}
     assert "Second tool call" in tool_calls[1].explanation
 
 def test_validate_unknown_tool(parser):
@@ -117,6 +117,7 @@ def test_validate_unknown_tool(parser):
 
 def test_validate_invalid_parameters(parser):
     """Test validation of invalid parameters."""
+    # Missing required parameter
     response = '''
 <function_calls>
 <invoke name="test_tool">
@@ -128,6 +129,22 @@ def test_validate_invalid_parameters(parser):
     with pytest.raises(ValueError) as exc_info:
         parser.parse_response(response)
     assert "Invalid parameters" in str(exc_info.value)
+    assert "'text' is a required property" in str(exc_info.value)
+    
+    # Invalid parameter value
+    response = '''
+<function_calls>
+<invoke name="test_tool">
+<parameter name="text">hello</parameter>
+<parameter name="count">-1</parameter>
+</invoke>
+</function_calls>
+'''
+    
+    with pytest.raises(ValueError) as exc_info:
+        parser.parse_response(response)
+    assert "Invalid parameters" in str(exc_info.value)
+    assert "-1 is less than the minimum of 0" in str(exc_info.value)
 
 def test_format_result(parser):
     """Test result formatting."""
@@ -135,8 +152,8 @@ def test_format_result(parser):
     dict_result = {"key": "value", "numbers": [1, 2, 3]}
     formatted = parser.format_result(dict_result, "test_tool")
     assert isinstance(formatted, str)
-    assert "key" in formatted
-    assert "[1, 2, 3]" in formatted
+    assert '"key":"value"' in formatted
+    assert '"numbers":[1,2,3]' in formatted
     
     # Simple result
     simple_result = "hello world"

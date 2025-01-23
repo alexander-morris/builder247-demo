@@ -83,6 +83,9 @@ class ResponseParser:
                     
                 parameters[param_name] = param_value
             
+            # Convert parameter types based on schema
+            parameters = self._convert_parameter_types(tool_name, parameters)
+            
             # Validate tool call
             self._validate_tool_call(tool_name, parameters)
             
@@ -107,6 +110,29 @@ class ResponseParser:
                 return last_para
         return None
     
+    def _convert_parameter_types(self, tool_name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert parameter values to their expected types based on schema."""
+        tool = self._registry.get_tool(tool_name)
+        if not tool:
+            return parameters
+            
+        schema = tool.parameters
+        if not schema or 'properties' not in schema:
+            return parameters
+            
+        converted = {}
+        for name, value in parameters.items():
+            if name in schema['properties']:
+                prop_schema = schema['properties'][name]
+                if prop_schema.get('type') == 'integer' and isinstance(value, str):
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        pass
+            converted[name] = value
+            
+        return converted
+    
     def _validate_tool_call(self, tool_name: str, parameters: Dict[str, Any]) -> None:
         """
         Validate a tool call against the registry.
@@ -128,7 +154,9 @@ class ResponseParser:
         try:
             self._registry._validator.validate_parameters(schema, parameters)
         except Exception as e:
-            raise ValueError(f"Invalid parameters for {tool_name}: {str(e)}")
+            error_msg = str(e)
+            logger.error(f"Parameter validation error: {error_msg}")
+            raise ValueError(f"Invalid parameters for {tool_name}: {error_msg}")
     
     def format_result(self, result: Any, tool_name: str) -> str:
         """
@@ -142,5 +170,5 @@ class ResponseParser:
             str: Formatted result string
         """
         if isinstance(result, (dict, list)):
-            return json.dumps(result, indent=2)
+            return json.dumps(result, separators=(',', ':'))
         return str(result) 
