@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  agent:
+    build: .
+    image: anthropic-agent:latest
+    environment:
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - LOG_LEVEL=DEBUG
+      - STORAGE_DIR=/app/data
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8080:8080"
+
+  tests:
+    build: .
+    image: anthropic-agent:latest
+    environment:
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - LOG_LEVEL=DEBUG
+      - STORAGE_DIR=/app/data
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+    command: python -m pytest tests/ -v
+    depends_on:
+      - agent 

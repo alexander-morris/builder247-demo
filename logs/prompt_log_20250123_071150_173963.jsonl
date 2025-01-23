@@ -1,0 +1,5 @@
+{"timestamp": "2025-01-23T07:11:50.174489", "prompt": "INIT", "response_summary": "Client initialized", "tools_used": [{"tool": "init"}]}
+{"timestamp": "2025-01-23T07:11:50.178656", "prompt": "Test 1", "response_summary": "Error sending message: Rate limit exceeded", "conversation_id": null, "tools_used": [], "error": "Error sending message: Rate limit exceeded"}
+{"timestamp": "2025-01-23T07:11:52.179276", "prompt": "Test 1", "response_summary": "Error sending message: Rate limit exceeded", "conversation_id": null, "tools_used": [], "error": "Error sending message: Rate limit exceeded"}
+{"timestamp": "2025-01-23T07:11:56.180028", "prompt": "Test 1", "response_summary": "Success 1", "conversation_id": null, "tools_used": [{"tool": "send_message"}], "response_text": "Success 1"}
+{"timestamp": "2025-01-23T07:11:56.180793", "prompt": "Test 2", "response_summary": "Success 2", "conversation_id": null, "tools_used": [{"tool": "send_message"}], "response_text": "Success 2"}
